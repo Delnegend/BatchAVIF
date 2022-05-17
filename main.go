@@ -50,7 +50,7 @@ func main() {
 	}
 
 	if cf.Config.DeleteAfterConversion {
-		fmt.Println("WARNING: Keep original files is off. Confirm delete original files after conversion? [y/N].")
+		fmt.Println("WARNING: Delete after conversion is on. Confirm delete original files after conversion? [y/N].")
 		var confirm string
 		fmt.Scanln(&confirm)
 		if strings.ToLower(confirm) != "y" {
