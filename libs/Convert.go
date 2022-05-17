@@ -66,6 +66,9 @@ func processInput(
 		if strings.Contains(p, "{{ output }}") {
 			encoder_preset[i] = strings.Replace(p, "{{ output }}", without_ext+".ivf", -1)
 		}
+		if strings.Contains(p, "{{ threads }}") {
+			encoder_preset[i] = strings.Replace(p, "{{ threads }}", fmt.Sprintf("%d", MaxCPU()), -1)
+		}
 	}
 	for i, p := range repack_preset {
 		if strings.Contains(p, "{{ input }}") {
