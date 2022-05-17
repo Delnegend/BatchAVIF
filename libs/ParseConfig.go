@@ -4,6 +4,7 @@ import (
 	// "os"
 	// "fmt"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -40,8 +41,8 @@ func configPath() (string, error) {
 			return os.Args[1], nil
 		}
 	}
-	if _, err := os.Stat("./config.yaml"); err == nil {
-		return "./config.yaml", nil
+	if _, err := os.Stat(GetAppPath()+"/config.yaml"); err == nil {
+		return fmt.Sprintf("%s/config.yaml", GetAppPath()), nil
 	}
 	return "", errors.New("config file not found")
 }
