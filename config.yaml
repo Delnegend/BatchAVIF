@@ -13,7 +13,7 @@ image:
     - "-strict"
     - "-2"
     - "-pix_fmt"
-    - "yuv444p" # or y4v444p10le for 10-bit extraction
+    - "yuv444p" # or yuv444p10le for 10-bit extraction
     - "-f"
     - "yuv4mpegpipe"
     - "-y"
