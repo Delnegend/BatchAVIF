@@ -13,7 +13,7 @@ image:
     - "-strict"
     - "-2"
     - "-pix_fmt"
-    - "yuv444p" # or yuv444p10le for 10-bit extraction
+    - "yuv444p10le" # run ffmpeg -pix_fmts to check available pixel formats
     - "-f"
     - "yuv4mpegpipe"
     - "-y"
@@ -24,8 +24,8 @@ image:
     - "--allintra"
     - "--ivf"
     - "--i444"
-    - "--threads=8" # Number of threads to use. Recommend change this according to your CPU
-    - "--bit-depth=8" # or 10 for 10-bit encoding
+    - "--threads={{ threads }}" # auto-detects number of threads your CPU has
+    - "--bit-depth=10"
     - "--end-usage=q"
     - "--max-q=63"
     - "--min-q=0"
@@ -52,7 +52,7 @@ image:
     - "-new"
     - "{{ output }}"
 animation:
-  formats: # same as above
+  formats: # same as image.formats
     - "gif"
     - "mp4"
     - "webm"
@@ -67,7 +67,7 @@ animation:
     - "-vf"
     - "scale=-1:'min(1080,ih)'" # for my specific use case I don't need the height to go above 1080, but you can remove this line entirely if you want
     - "-pix_fmt"
-    - "yuv420p" # or yuv420p10le for 10-bit extraction
+    - "yuv444p10le" # run ffmpeg -pix_fmts to check available pixel formats
     - "-f"
     - "yuv4mpegpipe"
     - "-y"
