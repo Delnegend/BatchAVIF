@@ -157,4 +157,6 @@ func main() {
 
 	fmt.Printf("==> %d file(s) converted\n", len(images)+len(animations)-len(failedToConvert))
 	reportFileSize(original_files_size, converted_files_size)
+
+	fmt.Printf("\nPress Enter to exit...")
 }
