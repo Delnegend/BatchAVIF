@@ -159,4 +159,6 @@ func main() {
 	reportFileSize(original_files_size, converted_files_size)
 
 	fmt.Printf("\nPress Enter to exit...")
+	var exit string
+	fmt.Scanln(&exit)
 }
