@@ -1,0 +1,112 @@
+image:
+  formats: # List of image formats you want to convert, as long as ffmpeg can decode them to y4m
+    - "png"
+    - "jpg"
+    - "jpeg"
+    - "tif"
+    - "tiff"
+    - "bmp"
+  extractor:
+    - "ffmpeg"
+    - "-i"
+    - "{{ input }}"
+    - "-strict"
+    - "-2"
+    - "-pix_fmt"
+    - "yuv444p" # or y4v444p10le for 10-bit extraction
+    - "-f"
+    - "yuv4mpegpipe"
+    - "-y"
+    - "{{ output }}"
+  encoder:
+    - "aomenc"
+    - "--codec=av1"
+    - "--allintra"
+    - "--ivf"
+    - "--i444"
+    - "--threads=8" # Number of threads to use. Recommend change this according to your CPU
+    - "--bit-depth=8" # or 10 for 10-bit encoding
+    - "--end-usage=q"
+    - "--max-q=63"
+    - "--min-q=0"
+    - "--cpu-used=6"
+    - "--enable-chroma-deltaq=1"
+    - "--qm-min=0"
+    - "--aq-mode=1"
+    - "--deltaq-mode=3"
+    - "--enable-dnl-denoising=0"
+    - "--denoise-noise-level=5"
+    - "--width={{ width }}"
+    - "--height={{ height }}"
+    - "-o"
+    - "{{ output }}"
+    - "{{ input }}"
+  repackager: # recommend leave this as is
+    - "MP4Box"
+    - "-add-image"
+    - "{{ input }}:primary"
+    - "-ab"
+    - "avif"
+    - "-ab"
+    - "miaf"
+    - "-new"
+    - "{{ output }}"
+animation:
+  formats: # same as above
+    - "gif"
+    - "mp4"
+    - "webm"
+  extractor:
+    - "ffmpeg"
+    - "-i"
+    - "{{ input }}"
+    - "-map"
+    - "v"
+    - "-strict"
+    - "-2"
+    - "-vf"
+    - "scale=-1:'min(1080,ih)'" # for my specific use case I don't need the height to go above 1080, but you can remove this line entirely if you want
+    - "-pix_fmt"
+    - "yuv420p" # or yuv420p10le for 10-bit extraction
+    - "-f"
+    - "yuv4mpegpipe"
+    - "-y"
+    - "{{ output }}"
+  encoder_main:
+    - "SvtAv1EncApp"
+    - "--preset"
+    - "8"
+    - "--film-grain"
+    - "2"
+    - "--progress"
+    - "5"
+    - "-b"
+    - "{{ output }}"
+    - "-i"
+    - "{{ input }}"
+  encoder_fallback:
+    - "rav1e"
+    - "-v"
+    - "--speed=4"
+    - "{{ input }}"
+    - "-o"
+    - "{{ output }}"
+  repackager: # recommend leave this as is
+    - "ffmpeg"
+    - "-i"
+    - "{{ input }}"
+    - "-c"
+    - "copy"
+    - "-map"
+    - "0"
+    - "-brand"
+    - "avis"
+    - "-f"
+    - "mp4"
+    - "{{ output }}"
+config:
+  delete_after_conversion: true
+  keep_original_extension: true
+  recursive: true # Also converts files in subdirectories
+  overwrite: false # Overwrite converted files if they already exist
+  export_log: false
