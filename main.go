@@ -83,7 +83,7 @@ func main() {
 			name = strings.TrimSuffix(image, filepath.Ext(image))
 		}
 
-		fmt.Println("==>", name)
+		fmt.Println("==>", image)
 
 		if _, err := os.Stat(name + ".avif"); os.IsExist(err) {
 			fmt.Printf("Already converted\n\n")
