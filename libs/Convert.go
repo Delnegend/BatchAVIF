@@ -101,7 +101,7 @@ func Convert(
 
 	if !rerun {
 		logDivider(log, "EXTRACT TO Y4M", extractor, extract_preset)
-		fmt.Println("Extracting animation to y4m format...")
+		fmt.Println("Extracting to y4m format...")
 		if ExecCommand(log, extractor, extract_preset...) != nil {
 			return errors.New("failed to extract")
 		}
