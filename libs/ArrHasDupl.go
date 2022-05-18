@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func HasDuplName(array_ []string) (bool, []string) {
+func ArrHasDupl(array_ []string) []string {
 	array := make([]string, len(array_))
 	copy(array, array_)
 	var dupls []string
@@ -18,14 +18,15 @@ func HasDuplName(array_ []string) (bool, []string) {
 		}
 	}
 	if len(dupls) > 0 {
-		return true, dupls
+		return dupls
 	}
-	return false, nil
+	return nil
 }
 
 func rmExt(name string) string {
 	return strings.ToLower(strings.TrimSuffix(name, filepath.Ext(name)))
 }
+
 func hasElem(array_ []string, elem string) bool {
 	array := make([]string, len(array_))
 	copy(array, array_)
