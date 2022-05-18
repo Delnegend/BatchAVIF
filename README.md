@@ -22,6 +22,7 @@ go build -o ./BatchAVIF main.go
 - [x] Keep/remove original file
 - [x] Keep/remove original extension
 - [x] A fallback encoderfor both image and animation
+- [ ] Show time taken to convert
 - [ ] Multi-threading
 - [ ] Piping input/output files to hide `y4m` and `ivf` files
 
