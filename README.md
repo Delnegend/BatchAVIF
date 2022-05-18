@@ -21,6 +21,7 @@ go build -o ./BatchAVIF main.go
 - [x] Auto parse: `{{ input }}`, `{{ output }}`, `{{ width }}`, `{{ height }}`, `{{ threads }}`
 - [x] Keep/remove original file
 - [x] Keep/remove original extension
+- [x] A fallback encoderfor both image and animation
 - [ ] Multi-threading
 - [ ] Piping input/output files to hide `y4m` and `ivf` files
 
@@ -30,7 +31,5 @@ go build -o ./BatchAVIF main.go
 - Run `./main` or `./main <your-config-file.yaml>` to start.
 
 ## (Maybe) FAQ
-- Why there is a fallback encoder for animation?
-  - `SVT-AV1`, the one I have been using to encode animation, is having this issue: [Odd image dimentions and svt-av1 encoder](https://github.com/AOMediaCodec/libavif/issues/544), so I decied to add a fallback encoder for it.
-- Will there be a fallback encoder for image?
-  - Yes (when I have the mood to do it).
+- Why there is a fallback encoder?
+  - This option was specifically made for `SVT-AV1`: [Odd image dimentions and svt-av1 encoder](https://github.com/AOMediaCodec/libavif/issues/544).

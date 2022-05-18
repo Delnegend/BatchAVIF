@@ -1,11 +1,13 @@
 image:
-  formats: # List of image formats you want to convert, as long as ffmpeg can decode them to y4m
-    - "png"
-    - "jpg"
-    - "jpeg"
-    - "tif"
-    - "tiff"
-    - "bmp"
+  formats:
+    # List of image formats you want to convert, as long as ffmpeg can decode them to y4m
+    # MUST INCLUDE THE DOT
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".tif"
+    - ".tiff"
+    - ".bmp"
   extractor:
     - "ffmpeg"
     - "-i"
@@ -22,7 +24,6 @@ image:
     - "aomenc"
     - "--codec=av1"
     - "--allintra"
-    - "--ivf"
     - "--i444"
     - "--threads={{ threads }}" # auto-detects number of threads your CPU has
     - "--bit-depth=10"
@@ -41,9 +42,11 @@ image:
     - "--tune=ssim"
     - "--width={{ width }}"
     - "--height={{ height }}"
+    - "{{ input }}"
+    - "--ivf"
     - "-o"
     - "{{ output }}"
-    - "{{ input }}"
+  encoder_fallback:
   repackager: # recommend leave this as is
     - "MP4Box"
     - "-add-image"
@@ -55,10 +58,11 @@ image:
     - "-new"
     - "{{ output }}"
 animation:
-  formats: # same as image.formats
-    - "gif"
-    - "mp4"
-    - "webm"
+  formats:
+    # SAME AS ABOVE
+    - ".gif"
+    - ".mp4"
+    - ".webm"
   extractor:
     - "ffmpeg"
     - "-i"
@@ -75,7 +79,7 @@ animation:
     - "yuv4mpegpipe"
     - "-y"
     - "{{ output }}"
-  encoder_main:
+  encoder:
     - "SvtAv1EncApp"
     - "--preset"
     - "8"
