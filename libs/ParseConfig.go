@@ -14,15 +14,16 @@ import (
 type Config struct {
 	// Example config config.yaml
 	Image struct {
-		Formats    []string `yaml:"formats"`
-		Extractor  []string `yaml:"extractor"`
-		Encoder    []string `yaml:"encoder"`
-		Repackager []string `yaml:"repackager"`
+		Formats         []string `yaml:"formats"`
+		Extractor       []string `yaml:"extractor"`
+		Encoder         []string `yaml:"encoder"`
+		EncoderFallback []string `yaml:"encoder_fallback"`
+		Repackager      []string `yaml:"repackager"`
 	} `yaml:"image"`
 	Animation struct {
 		Formats         []string `yaml:"formats"`
 		Extractor       []string `yaml:"extractor"`
-		EncoderMain     []string `yaml:"encoder_main"`
+		Encoder         []string `yaml:"encoder"`
 		EncoderFallback []string `yaml:"encoder_fallback"`
 		Repackager      []string `yaml:"repackager"`
 	} `yaml:"animation"`
@@ -41,7 +42,7 @@ func configPath() (string, error) {
 			return os.Args[1], nil
 		}
 	}
-	if _, err := os.Stat(GetAppPath()+"/config.yaml"); err == nil {
+	if _, err := os.Stat(GetAppPath() + "/config.yaml"); err == nil {
 		return fmt.Sprintf("%s/config.yaml", GetAppPath()), nil
 	}
 	return "", errors.New("config file not found")

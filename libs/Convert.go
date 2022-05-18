@@ -15,14 +15,12 @@ func processInput(
 	ext []string,
 	enc []string,
 	repack []string,
-) (string, string, []string, string, []string, string, []string, error) {
+) (string, []string, string, []string, string, []string, error) {
 	var cf Config
 	cf.ParseConfig()
 
-	var without_ext string
-	if cf.Config.KeepOriginalExtension {
-		without_ext = input
-	} else {
+	without_ext := input
+	if !cf.Config.KeepOriginalExtension {
 		without_ext = strings.TrimSuffix(input, filepath.Ext(input))
 	}
 
@@ -44,11 +42,10 @@ func processInput(
 			extract_preset[i] = without_ext + ".y4m"
 		}
 	}
-	// AOMENC requires width and height in the preset, don't know why they don't add a simple function to automatically parse them
 	if encoder == "aomenc" {
 		width, height, err := Dimension(log, input)
 		if err != nil {
-			return "", "", nil, "", nil, "", nil, err
+			return "", nil, "", nil, "", nil, err
 		}
 		for i, p := range encoder_preset {
 			if strings.Contains(p, "{{ width }}") {
@@ -78,8 +75,7 @@ func processInput(
 			repack_preset[i] = strings.Replace(p, "{{ output }}", without_ext+".avif", -1)
 		}
 	}
-	return without_ext, extractor, extract_preset, encoder, encoder_preset, repackager, repack_preset, nil
-
+	return extractor, extract_preset, encoder, encoder_preset, repackager, repack_preset, nil
 }
 
 // Just a fancy way to divide sections in the log
@@ -89,55 +85,16 @@ func logDivider(log *os.File, message string, enc string, preset []string) {
 	fmt.Fprintf(log, "\n\n\n")
 }
 
-func ConvertImg(
+func Convert(
 	log *os.File,
-	image string,
-	ext []string,
-	enc []string,
-	repack []string,
-) error {
-	name, extractor, extract_preset, encoder, encoder_preset, repackager, repack_preset, err := processInput(log, image, ext, enc, repack)
-
-	if err != nil {
-		return err
-	}
-
-	logDivider(log, "EXTRACT TO Y4M", extractor, extract_preset)
-	fmt.Println("Extracting image to y4m format...")
-	if ExecCommand(log, extractor, extract_preset...) != nil {
-		os.Remove(name + ".y4m")
-		return errors.New("failed to extract image to y4m format")
-	}
-
-	logDivider(log, "CONVERT TO IVF", encoder, encoder_preset)
-	fmt.Printf("Converting image to avif using %s...\n", encoder)
-	if ExecCommand(log, encoder, encoder_preset...) != nil {
-		rmTemp(name)
-		return errors.New("failed to convert y4m to ivf")
-	}
-
-	logDivider(log, "REPACK TO AVIF", repackager, repack_preset)
-	fmt.Println("Repacking to avif...")
-	if ExecCommand(log, repackager, repack_preset...) != nil {
-		rmTemp(name)
-		return errors.New("failed to repack ivf to avif")
-	}
-
-	rmTemp(name)
-	return nil
-
-}
-
-func ConvertAni(
-	log *os.File,
-	ani string,
+	file string,
 	ext []string,
 	enc []string,
 	repack []string,
 	rerun bool,
 ) error {
 
-	name, extractor, extract_preset, encoder, encoder_preset, repackager, repack_preset, err := processInput(log, ani, ext, enc, repack)
+	extractor, extract_preset, encoder, encoder_preset, repackager, repack_preset, err := processInput(log, file, ext, enc, repack)
 	if err != nil {
 		return err
 	}
@@ -146,39 +103,28 @@ func ConvertAni(
 		logDivider(log, "EXTRACT TO Y4M", extractor, extract_preset)
 		fmt.Println("Extracting animation to y4m format...")
 		if ExecCommand(log, extractor, extract_preset...) != nil {
-			os.Remove(name + ".y4m")
-			return errors.New("failed to extract animation to y4m format")
+			return errors.New("failed to extract")
 		}
 
 		logDivider(log, "CONVERT TO IVF", encoder, encoder_preset)
 		fmt.Printf("Converting to avif using %s...\n", encoder)
 		if ExecCommand(log, encoder, encoder_preset...) != nil {
-			os.Remove(name + ".ivf")
-			return errors.New("failed to convert y4m to ivf")
+			return errors.New("failed to convert")
 		}
 	}
 	if rerun {
 		logDivider(log, "RETRY CONVERT TO IVF", encoder, encoder_preset)
 		fmt.Printf("Retryng with %s...\n", encoder)
 		if ExecCommand(log, encoder, encoder_preset...) != nil {
-			rmTemp(name)
-			return errors.New("failed to convert y4m to ivf")
+			return errors.New("failed to convert")
 		}
 	}
 
 	logDivider(log, "REPACK TO AVIF", repackager, repack_preset)
 	fmt.Printf("Repacking to avif using %s...\n", repackager)
 	if ExecCommand(log, repackager, repack_preset...) != nil {
-		rmTemp(name)
-		return errors.New("failed to repack ivf to avif")
+		return errors.New("failed to repack")
 	}
 
-	rmTemp(name)
 	return nil
-
-}
-
-func rmTemp(name string) {
-	os.Remove(name + ".y4m")
-	os.Remove(name + ".ivf")
 }
