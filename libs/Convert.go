@@ -1,91 +1,19 @@
 package libs
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
+	pipe "github.com/b4b4r07/go-pipe"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 )
 
-// Replace {{ input }}, {{ output }},... with actual values
-func processInput(
-	log *os.File,
-	input string,
-	ext []string,
-	enc []string,
-	repack []string,
-) (string, []string, string, []string, string, []string, error) {
-	var cf Config
-	cf.ParseConfig()
-
-	without_ext := input
-	if !cf.Config.KeepOriginalExtension {
-		without_ext = strings.TrimSuffix(input, filepath.Ext(input))
-	}
-
-	extractor := ext[0]
-	extract_preset := make([]string, len(ext)-1)
-	copy(extract_preset, ext[1:])
-	encoder := enc[0]
-	encoder_preset := make([]string, len(enc)-1)
-	copy(encoder_preset, enc[1:])
-	repackager := repack[0]
-	repack_preset := make([]string, len(repack)-1)
-	copy(repack_preset, repack[1:])
-
-	for i, p := range extract_preset {
-		if strings.Contains(p, "{{ input }}") {
-			extract_preset[i] = input
-		}
-		if strings.Contains(p, "{{ output }}") {
-			extract_preset[i] = without_ext + ".y4m"
-		}
-	}
-	if encoder == "aomenc" {
-		width, height, err := Dimension(log, input)
-		if err != nil {
-			return "", nil, "", nil, "", nil, err
-		}
-		for i, p := range encoder_preset {
-			if strings.Contains(p, "{{ width }}") {
-				encoder_preset[i] = strings.Replace(p, "{{ width }}", fmt.Sprintf("%d", width), -1)
-			}
-			if strings.Contains(p, "{{ height }}") {
-				encoder_preset[i] = strings.Replace(p, "{{ height }}", fmt.Sprintf("%d", height), -1)
-			}
-		}
-	}
-	for i, p := range encoder_preset {
-		if strings.Contains(p, "{{ input }}") {
-			encoder_preset[i] = strings.Replace(p, "{{ input }}", without_ext+".y4m", -1)
-		}
-		if strings.Contains(p, "{{ output }}") {
-			encoder_preset[i] = strings.Replace(p, "{{ output }}", without_ext+".ivf", -1)
-		}
-		if strings.Contains(p, "{{ threads }}") {
-			encoder_preset[i] = strings.Replace(p, "{{ threads }}", fmt.Sprintf("%d", MaxCPU()), -1)
-		}
-	}
-	for i, p := range repack_preset {
-		if strings.Contains(p, "{{ input }}") {
-			repack_preset[i] = strings.Replace(p, "{{ input }}", without_ext+".ivf", -1)
-		}
-		if strings.Contains(p, "{{ output }}") {
-			repack_preset[i] = strings.Replace(p, "{{ output }}", without_ext+".avif", -1)
-		}
-	}
-	return extractor, extract_preset, encoder, encoder_preset, repackager, repack_preset, nil
-}
-
-// Just a fancy way to divide sections in the log
-func logDivider(log *os.File, message string, enc string, preset []string) {
-	fmt.Fprintf(log, "\n\n\n==================== %s ====================\n", message)
-	fmt.Fprintf(log, "Using %s with preset: %s\n", enc, preset)
-	fmt.Fprintf(log, "\n\n\n")
-}
-
-func Convert(
+// run extract-encode-repack file by file, export log, print detailed progress
+func StandardConvert(
 	log *os.File,
 	file string,
 	ext []string,
@@ -93,38 +21,148 @@ func Convert(
 	repack []string,
 	rerun bool,
 ) error {
-
-	extractor, extract_preset, encoder, encoder_preset, repackager, repack_preset, err := processInput(log, file, ext, enc, repack)
-	if err != nil {
-		return err
-	}
-
 	if !rerun {
-		logDivider(log, "EXTRACT TO Y4M", extractor, extract_preset)
+		logDivider(log, "EXTRACT TO Y4M", ext[0], ext[1:])
 		fmt.Println("Extracting to y4m format...")
-		if ExecCommand(log, extractor, extract_preset...) != nil {
-			return errors.New("failed to extract")
+		if ExecCommand(log, ext[0], ext[1:]...) != nil {
+			return fmt.Errorf("failed to extract")
 		}
-
-		logDivider(log, "CONVERT TO IVF", encoder, encoder_preset)
-		fmt.Printf("Converting to avif using %s...\n", encoder)
-		if ExecCommand(log, encoder, encoder_preset...) != nil {
-			return errors.New("failed to convert")
+		logDivider(log, "CONVERT TO IVF", enc[0], enc[1:])
+		fmt.Printf("Converting to avif using %s...\n", enc[0])
+		if ExecCommand(log, enc[0], enc[1:]...) != nil {
+			return fmt.Errorf("failed to convert")
 		}
 	}
 	if rerun {
-		logDivider(log, "RETRY CONVERT TO IVF", encoder, encoder_preset)
-		fmt.Printf("Retryng with %s...\n", encoder)
-		if ExecCommand(log, encoder, encoder_preset...) != nil {
-			return errors.New("failed to convert")
+		logDivider(log, "RETRY CONVERT TO IVF", enc[0], enc[1:])
+		fmt.Printf("Retryng with %s...\n", enc)
+		if ExecCommand(log, enc[0], enc[1:]...) != nil {
+			return fmt.Errorf("failed to convert")
 		}
 	}
-
-	logDivider(log, "REPACK TO AVIF", repackager, repack_preset)
-	fmt.Printf("Repacking to avif using %s...\n", repackager)
-	if ExecCommand(log, repackager, repack_preset...) != nil {
-		return errors.New("failed to repack")
+	logDivider(log, "REPACK TO AVIF", repack[0], repack[1:])
+	fmt.Println("Repacking to avif...")
+	if ExecCommand(log, repack[0], repack[1:]...) != nil {
+		return fmt.Errorf("failed to repack")
 	}
-
 	return nil
+}
+
+// Like ConvertFileModeSingleThread, but without logging or printing progress
+func spawnFileModeJob(log *os.File, file string, ext []string, enc []string, repack []string, rerun bool) error {
+	if !rerun {
+		if ExecCommand(nil, ext[0], ext[1:]...) != nil {
+			return fmt.Errorf("failed to extract")
+		}
+		if ExecCommand(nil, enc[0], enc[1:]...) != nil {
+			return fmt.Errorf("failed to convert")
+		}
+	}
+	if rerun {
+		if ExecCommand(nil, enc[0], enc[1:]...) != nil {
+			return fmt.Errorf("failed to convert")
+		}
+	}
+	if ExecCommand(nil, repack[0], repack[1:]...) != nil {
+		return fmt.Errorf("failed to repack")
+	}
+	return nil
+}
+
+// like spawnFileModeJob, but piping commands directly without extracting middle files
+func spawnPipeModeJob(ext []string, enc []string, repack []string) error {
+	var b bytes.Buffer
+	err := pipe.Command(&b,
+		exec.Command(ext[0], ext[1:]...),
+		exec.Command(enc[0], enc[1:]...),
+		exec.Command(repack[0], repack[1:]...),
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// spawing multiple spawnFileModeJob/spawnPipeModeJob in parallel
+func Convert(
+	log *os.File,
+	files chan string,
+	ext_ []string,
+	enc_ []string,
+	fallback_ []string,
+	repack_ []string,
+	mode string,
+	fail_convert *[]string,
+	skip_convert *[]string,
+	orig_sizes *float64,
+	converted_sizes *float64,
+	wg *sync.WaitGroup,
+) {
+	var cf Config
+	cf.ParseConfig()
+	for file := range files {
+		// region: FILE ALREADY EXIST?
+		name := file
+		if !cf.Config.KeepOriginalExtension {
+			name = strings.TrimSuffix(file, filepath.Ext(file))
+		}
+		// if name + ".avif" is exist, add file to skip_convert and continue
+		if _, err := os.Stat(name + ".avif"); err == nil {
+			fmt.Printf("==> %s.avif already existed\n", name)
+			*skip_convert = append(*skip_convert, file)
+			continue
+		}
+		// endregion
+
+		// CREATE COMMANDS
+		ext, enc, fallback, repack, err := ProcessPreset(nil, file, ext_, enc_, fallback_, repack_)
+		if err != nil {
+			*fail_convert = append(*fail_convert, file)
+			fmt.Println("==> ERROR [config validation]:", file, "\n", err)
+			continue
+		}
+
+		// START CONVERT
+		start := time.Now()
+		var errMain error
+		if mode == "file" {
+			errMain = spawnFileModeJob(log, file, ext, enc, repack, false)
+		} else if mode == "pipe" {
+			errMain = spawnPipeModeJob(ext, enc, repack)
+		}
+		os.Remove(file + ".ivf") // remove ivf created by failed encoder, keep the extracted y4m for fallback
+
+		// if failed, no fallback
+		if (errMain != nil) && (len(fallback) <= 0) {
+			os.Remove(file + ".y4m") // remove y4m too if no fallback
+			*fail_convert = append(*fail_convert, file)
+			fmt.Println("==> ERROR [main encoder]:", file, "\n", errMain)
+			continue
+		} else if len(fallback) > 0 {
+			// fallback
+			var errFallback error
+			if mode == "file" {
+				errFallback = spawnFileModeJob(log, file, ext, fallback, repack, true)
+			}
+			if mode == "pipe" {
+				errFallback = spawnPipeModeJob(ext, fallback, repack)
+			}
+			os.Remove(file + ".y4m")
+			os.Remove(file + ".ivf")
+			// if fallback also failed
+			if errFallback != nil {
+				*fail_convert = append(*fail_convert, file)
+				fmt.Println("==> ERROR [fallback encoder]:", file, "\n", errFallback)
+				continue
+			}
+		}
+		// if success
+		os.Remove(file + ".y4m") // remove y4m if success since we've already removed the ivf right after errMain
+		*orig_sizes += FileSize(file)
+		*converted_sizes += FileSize(name + ".avif")
+		// rount time since start to 2 decimal places
+
+		fmt.Printf("==> SUCCESS: %s | %s | %.2fs\n", file, ReportFileSize(FileSize(file), FileSize(name+".avif")), time.Since(start).Seconds())
+	}
+	wg.Done()
 }

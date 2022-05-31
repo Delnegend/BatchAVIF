@@ -1,36 +1,51 @@
 # Batch AVIF
 
-## Build
+## ✨ Features
+- [x] ⚙️ Configurable presets
+- [x] 🔧 Keep/remove original file(s)
+- [x] 🔧 Keep/remove original extension
+- [x] ✅ Skip/overwrite converted file(s)
+- [x] ♾️ Dynamic variable in `config.yaml`
+  - `{{ input }}`
+  - `{{ output }}`
+  - `{{ width }}`
+  - `{{ height }}`
+  - `{{ threads }}`
+- [x] 🔙 Fallback encoder
+- [x] 🧵 Multi-threading (thanks to [WoofinaS](https://github.com/WoofinaS/img2avif))
+- [x] ⏱️ Timer for each conversion
+- [x] 🔌 Auto detect piped/non-pipe mode (thanks to [WoofinaS](https://github.com/WoofinaS/img2avif))
+- [x] 📃 Export log file (single threaded, non-pipe mode only)
+- [ ] 🔔 Notification when finished
+
+## 📖 You might wanna read
+- There're 3 steps on transcoding a/an video/image into AV1/AVIF:
+  1. [Extractor] decode the video/image into a .y4m file
+  2. [Encoder] encode y4m to AV1/AVIF (usually) into an .ivf file
+  3. [Repackager] repack the .ivf to .mkv, .mp4, .avif... with appropriate headers and metadata
+- Piped/non-pipe mode?
+  - Piped mode: `<file> -> extractor-encoder-repackager -> <file.avif>`
+  - Non-pipe mode: `<file> -> extractor -> <file.y4m> -> encoder -> <file.ivf> -> repackager -> <file.avif>`
+  - Pipe mode is guarantee to be faster but it only works on linux (and macOS idk, I don't have one to test)
+  - To use non-pipe mode, specify both `{{ input }}`, `{{ output }}` in extractor's, encoder's (, fallback encoder's if there is) and repackager's presets.
+  - To use pipe mode, keep `{{ input }}` in extractor's preset and `{{ output }}` in repackager's, the rest replace with a hyphen `-`.
+
+## 🛠️ Build
 ```terminal
 git clone https://github.com/Delnegend/BatchAVIF.git
-
 cd ./BatchAVIF
-
 go build -o ./BatchAVIF main.go
 ```
 
-
-## Basic understanding
-- There're 3 steps on transcoding a/an video/image into AV1/AVIF:
-  1. [Extractor] Decode the video/image into Y4M container
-  2. [Encodoer] Encode to AV1/AVIF
-  3. [Repackager] Repackaging to .mkv, .mp4, .avif... with the appropriate headers and metadata
-
-## TODO list
-- [x] Fully configurable for each step
-- [x] Auto parse: `{{ input }}`, `{{ output }}`, `{{ width }}`, `{{ height }}`, `{{ threads }}`
-- [x] Keep/remove original file
-- [x] Keep/remove original extension
-- [x] A fallback encoderfor both image and animation
-- [ ] Show time taken to convert
-- [ ] Multi-threading
-- [ ] Piping input/output files to hide `y4m` and `ivf` files
-
-## Usage
-- Have `ffmpeg`, `MP4Box` and an (or multiple) encoder(s) of your choice in PATH or place them in the same folder where the compiled file is.
+## 📕 Usage
+- Have `ffmpeg`, `MP4Box` and an (or multiple) encoder(s) of your choice in PATH.
 - Modify the `config.yaml` file to fit your needs.
 - Run `./main` or `./main <your-config-file.yaml>` to start.
 
-## (Maybe) FAQ
-- Why there is a fallback encoder?
-  - This option was specifically made for `SVT-AV1`: [Odd image dimentions and svt-av1 encoder](https://github.com/AOMediaCodec/libavif/issues/544).
+## ❓ Questions you might ask
+- Fallback encoder?<br>
+  This option was exist because of `SVT-AV1`: [Odd image dimentions and svt-av1 encoder](https://github.com/AOMediaCodec/libavif/issues/544).
+- Cannot scale the source with `{{ width }}` and/or `{{ height }}` in pipe mode?
+  - Without ffmpeg's scale, BatchAVIF can just simply replace `{{ width }}` and/or `{{ height }}` with the resolution it read from the original file.
+  - With ffmpeg's scale, BatchAVIF must read from the extracted `.y4m` file instead, piping throws it directly into the encoding stage.
+  - I already had a workaround but my battery rans out, I'm not gonna touch this project for quite a while.

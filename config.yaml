@@ -11,7 +11,7 @@ image:
   extractor:
     - "ffmpeg"
     - "-i"
-    - "{{ input }}"
+    - "{{ input }}" # DO NOT PLACE "-" HERE
     - "-strict"
     - "-2"
     - "-pix_fmt"
@@ -19,7 +19,7 @@ image:
     - "-f"
     - "yuv4mpegpipe"
     - "-y"
-    - "{{ output }}"
+    - "{{ output }}" # or "-" for pipe mode (stdout)
   encoder:
     - "aomenc"
     - "--codec=av1"
@@ -42,21 +42,21 @@ image:
     - "--tune=ssim"
     - "--width={{ width }}"
     - "--height={{ height }}"
-    - "{{ input }}"
+    - "{{ input }}" # or "-" for pipe mode (stdin)
     - "--ivf"
     - "-o"
-    - "{{ output }}"
-  encoder_fallback:
+    - "{{ output }}" # or "-" for pipe mode (stdout)
+  encoder_fallback: # leave this blank to disable fallback encoder
   repackager: # recommend leave this as is
     - "MP4Box"
     - "-add-image"
-    - "{{ input }}:primary"
+    - "{{ input }}:primary" # or "-:primary" for pipe mode (stdin)
     - "-ab"
     - "avif"
     - "-ab"
     - "miaf"
     - "-new"
-    - "{{ output }}"
+    - "{{ output }}" # DO NOT PLACE "-" HERE
 animation:
   formats:
     # SAME AS ABOVE
@@ -66,42 +66,66 @@ animation:
   extractor:
     - "ffmpeg"
     - "-i"
-    - "{{ input }}"
+    - "{{ input }}" # DO NOT PLACE "-" HERE
     - "-map"
     - "v"
     - "-strict"
     - "-2"
     - "-vf"
-    - "scale=-1:'min(1080,ih)'" # for my specific use case I don't need the height to go above 1080, but you can remove this line entirely if you want
+    # - "scale=-1:'min(1080,ih)'" # for my specific use case I don't need the height to go above 1080
     - "-pix_fmt"
     - "yuv444p10le" # run ffmpeg -pix_fmts to check available pixel formats
     - "-f"
     - "yuv4mpegpipe"
     - "-y"
-    - "{{ output }}"
+    - "{{ output }}" # or "-" for pipe mode (stdout)
   encoder:
-    - "SvtAv1EncApp"
-    - "--preset"
-    - "8"
-    - "--film-grain"
-    - "2"
-    - "--progress"
-    - "5"
-    - "-b"
-    - "{{ output }}"
-    - "-i"
-    - "{{ input }}"
-  encoder_fallback:
-    - "rav1e"
-    - "-v"
-    - "--speed=4"
-    - "{{ input }}"
+    # - "SvtAv1EncApp"
+    # - "--preset"
+    # - "8"
+    # - "--film-grain"
+    # - "2"
+    # - "--progress"
+    # - "5"
+    # - "-b"
+    # - "{{ output }}"
+    # - "-i"
+    # - "{{ input }}"
+
+    - "aomenc"
+    - "--codec=av1"
+    - "--i444"
+    - "--threads={{ threads }}" # auto-detects number of threads your CPU has
+    - "--bit-depth=10"
+    - "--max-q=63"
+    - "--min-q=0"
+    - "--end-usage=q"
+    - "--cq-level=25"
+    - "--cpu-used=6"
+    - "--enable-chroma-deltaq=1"
+    - "--qm-min=0"
+    - "--aq-mode=1"
+    - "--enable-dnl-denoising=0"
+    - "--denoise-noise-level=5"
+    - "--tune=ssim"
+    - "--width={{ width }}"
+    - "--height={{ height }}"
+    - "--ivf"
+    - "{{ input }}" # or "-" for pipe mode (stdin)
     - "-o"
-    - "{{ output }}"
+    - "{{ output }}" # or "-" for pipe mode (stdout)
+
+  encoder_fallback:
+    # - "rav1e"
+    # - "-v"
+    # - "--speed=4"
+    # - "{{ input }}"
+    # - "-o"
+    # - "{{ output }}"
   repackager: # recommend leave this as is
     - "ffmpeg"
     - "-i"
-    - "{{ input }}"
+    - "{{ input }}" # or "-" for pipe mode (stdin)
     - "-c"
     - "copy"
     - "-map"
@@ -110,10 +134,11 @@ animation:
     - "avis"
     - "-f"
     - "mp4"
-    - "{{ output }}"
+    - "{{ output }}" # DO NOT PLACE "-" HERE
 config:
+  threads: 1
   delete_after_conversion: false
-  keep_original_extension: true
+  keep_original_extension: false
   recursive: true # Also converts files in subdirectories
   overwrite: false # Overwrite converted files if they already exist
   export_log: false

@@ -19,7 +19,7 @@ func FileSize(path string) float64 {
 	return float64(fi.Size())
 }
 
-func HumanReadableSize(size float64) string {
+func humanReadable(size float64) string {
 	size_str := ""
 	if size > 1024*1024*1024 {
 		size_str = fmt.Sprintf("%.2f GB", size/1024/1024/1024)
@@ -33,11 +33,11 @@ func HumanReadableSize(size float64) string {
 	return size_str
 }
 
-func ReportFileSize(old float64, new float64) {
-	fmt.Printf(
-		"Original: %s | Converted: %s ~ %.2f%%\n",
-		HumanReadableSize(old),
-		HumanReadableSize(new),
+func ReportFileSize(old float64, new float64) string {
+	return fmt.Sprintf(
+		"%s -> %s ~ %.2f%%",
+		humanReadable(old),
+		humanReadable(new),
 		float64(new)/float64(old)*100,
 	)
 }

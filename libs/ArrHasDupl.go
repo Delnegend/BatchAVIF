@@ -1,9 +1,8 @@
 package libs
 
 import (
-	// "fmt"
-	"path/filepath"
 	"strings"
+	"path/filepath"
 )
 
 func ArrHasDupl(array_ []string) []string {
@@ -11,9 +10,14 @@ func ArrHasDupl(array_ []string) []string {
 	copy(array, array_)
 	var dupls []string
 	for i := 0; i < len(array); i++ {
-		for j := 0; j < len(array); j++ {
-			if (rmExt(array[i]) == rmExt(array[j])) && (i != j) && !hasElem(dupls, array[j]) {
-				dupls = append(dupls, array[j])
+		for j := i; j < len(array); j++ {
+			if rmExt(array[i]) == rmExt(array[j]) && (i != j) {
+				if !InArr(dupls, array[i]) {
+					dupls = append(dupls, array[i])
+				}
+				if !InArr(dupls, array[j]) {
+					dupls = append(dupls, array[j])
+				}
 			}
 		}
 	}
@@ -24,16 +28,5 @@ func ArrHasDupl(array_ []string) []string {
 }
 
 func rmExt(name string) string {
-	return strings.ToLower(strings.TrimSuffix(name, filepath.Ext(name)))
-}
-
-func hasElem(array_ []string, elem string) bool {
-	array := make([]string, len(array_))
-	copy(array, array_)
-	for _, i := range array {
-		if i == elem {
-			return true
-		}
-	}
-	return false
+	return strings.TrimSuffix(name, filepath.Ext(name))
 }
