@@ -11,7 +11,7 @@ image:
   extractor:
     - "ffmpeg"
     - "-i"
-    - "{{ input }}" # DO NOT PLACE "-" HERE
+    - "{{ input }}"
     - "-strict"
     - "-2"
     - "-pix_fmt"
@@ -19,7 +19,7 @@ image:
     - "-f"
     - "yuv4mpegpipe"
     - "-y"
-    - "{{ output }}" # or "-" for pipe mode (stdout)
+    - "{{ output }}"
   encoder:
     - "aomenc"
     - "--codec=av1"
@@ -42,10 +42,10 @@ image:
     - "--tune=ssim"
     - "--width={{ width }}"
     - "--height={{ height }}"
-    - "{{ input }}" # or "-" for pipe mode (stdin)
+    - "{{ input }}"
     - "--ivf"
     - "-o"
-    - "{{ output }}" # or "-" for pipe mode (stdout)
+    - "{{ output }}"
   encoder_fallback: # leave this blank to disable fallback encoder
   repackager: # recommend leave this as is
     - "MP4Box"
@@ -56,7 +56,7 @@ image:
     - "-ab"
     - "miaf"
     - "-new"
-    - "{{ output }}" # DO NOT PLACE "-" HERE
+    - "{{ output }}"
 animation:
   formats:
     # SAME AS ABOVE
@@ -66,7 +66,7 @@ animation:
   extractor:
     - "ffmpeg"
     - "-i"
-    - "{{ input }}" # DO NOT PLACE "-" HERE
+    - "{{ input }}"
     - "-map"
     - "v"
     - "-strict"
@@ -78,7 +78,7 @@ animation:
     - "-f"
     - "yuv4mpegpipe"
     - "-y"
-    - "{{ output }}" # or "-" for pipe mode (stdout)
+    - "{{ output }}"
   encoder:
     # - "SvtAv1EncApp"
     # - "--preset"
@@ -111,9 +111,9 @@ animation:
     - "--width={{ width }}"
     - "--height={{ height }}"
     - "--ivf"
-    - "{{ input }}" # or "-" for pipe mode (stdin)
+    - "{{ input }}"
     - "-o"
-    - "{{ output }}" # or "-" for pipe mode (stdout)
+    - "{{ output }}"
 
   encoder_fallback:
     # - "rav1e"
@@ -125,7 +125,7 @@ animation:
   repackager: # recommend leave this as is
     - "ffmpeg"
     - "-i"
-    - "{{ input }}" # or "-" for pipe mode (stdin)
+    - "{{ input }}"
     - "-c"
     - "copy"
     - "-map"
@@ -134,9 +134,10 @@ animation:
     - "avis"
     - "-f"
     - "mp4"
-    - "{{ output }}" # DO NOT PLACE "-" HERE
+    - "{{ output }}"
 config:
-  threads: 1
+  mode: "file" # or pipe
+  threads: 2
   delete_after_conversion: false
   keep_original_extension: false
   recursive: true # Also converts files in subdirectories

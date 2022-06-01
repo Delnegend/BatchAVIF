@@ -101,6 +101,7 @@ func Convert(
 	var cf Config
 	cf.ParseConfig()
 	for file := range files {
+		start := time.Now()
 		// region: FILE ALREADY EXIST?
 		name := file
 		if !cf.Config.KeepOriginalExtension {
@@ -123,7 +124,6 @@ func Convert(
 		}
 
 		// START CONVERT
-		start := time.Now()
 		var errMain error
 		if mode == "file" {
 			errMain = spawnFileModeJob(log, file, ext, enc, repack, false)

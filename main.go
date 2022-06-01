@@ -27,7 +27,7 @@ func startConvert(
 ) {
 	var cf libs.Config
 	cf.ParseConfig()
-	mode, err := libs.ValidateConfig(ext_raw, enc_raw, fallback_raw, repack_raw)
+	mode, err := libs.ValidateConfig(cf.Config.Mode, ext_raw, enc_raw, fallback_raw, repack_raw)
 	if threads <= 0 {
 		threads = 1
 	}
@@ -38,6 +38,7 @@ func startConvert(
 	// STANDARD CONVERSION, FILE BY FILE, COMMAND BY COMMAND, LOGGED
 	if mode == "file" && threads == 1 {
 		for _, file := range files {
+			start := time.Now()
 			fmt.Println("==>", file)
 			// region: FILE ALREADY EXIST?
 			name := file
@@ -61,7 +62,6 @@ func startConvert(
 			// endregion
 
 			// region: START CONVERTING
-			start := time.Now()
 			errMain := libs.StandardConvert(log, file, ext, enc, rep, false)
 			os.Remove(file + ".ivf") // remove ivf created by failed encoder, keep the extracted y4m for fallback
 			// if failed, no fallback

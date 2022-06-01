@@ -28,12 +28,13 @@ type Config struct {
 		Repackager      []string `yaml:"repackager"`
 	} `yaml:"animation"`
 	Config struct {
-		Threads               int  `yaml:"threads"`
-		DeleteAfterConversion bool `yaml:"delete_after_conversion"`
-		KeepOriginalExtension bool `yaml:"keep_original_extension"`
-		Overwrite             bool `yaml:"overwrite"`
-		Recursive             bool `yaml:"recursive"`
-		ExportLog             bool `yaml:"export_log"`
+		Mode                  string `yaml:"mode"`
+		Threads               int    `yaml:"threads"`
+		DeleteAfterConversion bool   `yaml:"delete_after_conversion"`
+		KeepOriginalExtension bool   `yaml:"keep_original_extension"`
+		Overwrite             bool   `yaml:"overwrite"`
+		Recursive             bool   `yaml:"recursive"`
+		ExportLog             bool   `yaml:"export_log"`
 	}
 }
 

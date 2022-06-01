@@ -17,6 +17,7 @@ func ProcessPreset(
 ) ([]string, []string, []string, []string, error) {
 	var cf Config
 	cf.ParseConfig()
+	mode := cf.Config.Mode
 
 	without_ext := file
 	if !cf.Config.KeepOriginalExtension {
@@ -36,16 +37,22 @@ func ProcessPreset(
 		if strings.Contains(p, "{{ input }}") {
 			ext[i] = file
 		}
-		if strings.Contains(p, "{{ output }}") {
-			ext[i] = file + ".y4m"
+		if strings.Contains(p, "{{ output }}") && (mode == "file") {
+			ext[i] = strings.Replace(p, "{{ output }}", file+".y4m", -1)
+		} else if mode == "pipe" {
+			ext[i] = strings.Replace(p, "{{ output }}", "-", -1)
 		}
 	}
 	for i, p := range enc {
-		if strings.Contains(p, "{{ input }}") {
+		if strings.Contains(p, "{{ input }}") && (mode == "file") {
 			enc[i] = strings.Replace(p, "{{ input }}", file+".y4m", -1)
+		} else if mode == "pipe" {
+			enc[i] = strings.Replace(p, "{{ input }}", "-", -1)
 		}
-		if strings.Contains(p, "{{ output }}") {
+		if strings.Contains(p, "{{ output }}") && (mode == "file") {
 			enc[i] = strings.Replace(p, "{{ output }}", file+".ivf", -1)
+		} else if mode == "pipe" {
+			enc[i] = strings.Replace(p, "{{ output }}", "-", -1)
 		}
 		if strings.Contains(p, "{{ threads }}") {
 			enc[i] = strings.Replace(p, "{{ threads }}", fmt.Sprintf("%d", MaxCPU()), -1)
@@ -64,11 +71,15 @@ func ProcessPreset(
 		}
 	}
 	for i, p := range fallback {
-		if strings.Contains(p, "{{ input }}") {
+		if strings.Contains(p, "{{ input }}") && (mode == "file") {
 			fallback[i] = strings.Replace(p, "{{ input }}", file+".y4m", -1)
+		} else if mode == "pipe" {
+			fallback[i] = strings.Replace(p, "{{ input }}", "-", -1)
 		}
-		if strings.Contains(p, "{{ output }}") {
+		if strings.Contains(p, "{{ output }}") && (mode == "file") {
 			fallback[i] = strings.Replace(p, "{{ output }}", file+".ivf", -1)
+		} else if mode == "pipe" {
+			fallback[i] = strings.Replace(p, "{{ output }}", "-", -1)
 		}
 		if strings.Contains(p, "{{ width }}") || strings.Contains(p, "{{ height }}") {
 			width, height, err := Dimension(log, file)
@@ -84,8 +95,10 @@ func ProcessPreset(
 		}
 	}
 	for i, p := range repack {
-		if strings.Contains(p, "{{ input }}") {
+		if strings.Contains(p, "{{ input }}") && (mode == "file") {
 			repack[i] = strings.Replace(p, "{{ input }}", file+".ivf", -1)
+		} else if mode == "pipe" {
+			repack[i] = strings.Replace(p, "{{ input }}", "-", -1)
 		}
 		if strings.Contains(p, "{{ output }}") {
 			repack[i] = strings.Replace(p, "{{ output }}", without_ext+".avif", -1)

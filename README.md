@@ -14,7 +14,7 @@
 - [x] 🔙 Fallback encoder
 - [x] 🧵 Multi-threading (thanks to [WoofinaS](https://github.com/WoofinaS/img2avif))
 - [x] ⏱️ Timer for each conversion
-- [x] 🔌 Auto detect piped/non-pipe mode (thanks to [WoofinaS](https://github.com/WoofinaS/img2avif))
+- [x] 🔌 Piped/non-pipe mode (thanks to [WoofinaS](https://github.com/WoofinaS/img2avif))
 - [x] 📃 Export log file (single threaded, non-pipe mode only)
 - [ ] 🔔 Notification when finished
 
@@ -27,8 +27,8 @@
   - Piped mode: `<file> -> extractor-encoder-repackager -> <file.avif>`
   - Non-pipe mode: `<file> -> extractor -> <file.y4m> -> encoder -> <file.ivf> -> repackager -> <file.avif>`
   - Pipe mode is guarantee to be faster but it only works on linux (and macOS idk, I don't have one to test)
-  - To use non-pipe mode, specify both `{{ input }}`, `{{ output }}` in extractor's, encoder's (, fallback encoder's if there is) and repackager's presets.
-  - To use pipe mode, keep `{{ input }}` in extractor's preset and `{{ output }}` in repackager's, the rest replace with a hyphen `-`.
+  - To use pipe mode, set config > mode to "pipe"
+  - To use non-pipe mode, set config > mode to "file"
 
 ## 🛠️ Build
 ```terminal
