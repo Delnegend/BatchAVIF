@@ -162,7 +162,7 @@ func Convert(
 		*converted_sizes += FileSize(name + ".avif")
 		// rount time since start to 2 decimal places
 
-		fmt.Printf("==> SUCCESS: %s | %s | %.2fs\n", file, ReportFileSize(FileSize(file), FileSize(name+".avif")), time.Since(start).Seconds())
+		fmt.Printf("==> SUCCESS: %s | %s | %s\n", file, ReportFileSize(FileSize(file), FileSize(name+".avif")), Timer(&start))
 	}
 	wg.Done()
 }

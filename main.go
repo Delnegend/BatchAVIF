@@ -87,7 +87,7 @@ func startConvert(
 			os.Remove(file + ".y4m") // remove y4m if success since we've already removed the ivf right after errMain
 			*orig_sizes += libs.FileSize(file)
 			*converted_sizes += libs.FileSize(name + ".avif")
-			fmt.Printf("%s | %.2fs", libs.ReportFileSize(libs.FileSize(file), libs.FileSize(name+".avif")), time.Since(start).Seconds())
+			fmt.Printf("%s | %s", libs.ReportFileSize(libs.FileSize(file), libs.FileSize(name+".avif")), libs.Timer(&start))
 			fmt.Println("")
 			// endregion
 		}
