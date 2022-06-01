@@ -7,14 +7,11 @@ import(
 
 func Timer(start *time.Time) string {
 	duration := time.Since(*start)
-	if duration < 1000 {
-		return fmt.Sprintf("%d ms", duration)
+	if duration.Hours() >= 1 {
+		return fmt.Sprintf("%dh%dm%ds", int(duration.Hours()), int(duration.Minutes())%60, int(duration.Seconds())%60)
+	} else if duration.Minutes() >= 1 {
+		return fmt.Sprintf("%dm%ds", int(duration.Minutes())%60, int(duration.Seconds())%60)
+	} else {
+		return fmt.Sprintf("%.2fs", duration.Seconds())
 	}
-	if duration < 1000*60 {
-		return fmt.Sprintf("%.2f s", float64(duration)/1000)
-	}
-	if duration < 1000*60*60 {
-		return fmt.Sprintf("%.2f min", float64(duration)/1000/60)
-	}
-	return fmt.Sprintf("%.2f h", float64(duration)/1000/60/60)
 }

@@ -176,8 +176,6 @@ func main() {
 	// then animations
 	startConvert(log, animations, cf.Animation.Extractor, cf.Animation.Encoder, cf.Animation.EncoderFallback, cf.Animation.Repackager, cf.Config.Threads, cf.Config.KeepOriginalExtension, &fail_convert, &skip_convert, &original_sizes, &converted_sizes)
 
-	timer := time.Since(start).Seconds()
-
 	// region: POST CONVERSION
 	// remove original files
 	if cf.Config.DeleteAfterConversion {
@@ -189,7 +187,7 @@ func main() {
 	}
 	// report converted
 	fmt.Printf("\n==> %d file(s) converted\n", len(images_and_anis)-len(fail_convert)-len(skip_convert))
-	fmt.Printf("%s | %.2fs\n", libs.ReportFileSize(original_sizes, converted_sizes), timer)
+	fmt.Printf("%s | %s\n", libs.ReportFileSize(original_sizes, converted_sizes), libs.Timer(&start))
 	fmt.Println()
 
 	// report skipped
