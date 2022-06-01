@@ -100,7 +100,7 @@ animation:
     - "--max-q=63"
     - "--min-q=0"
     - "--end-usage=q"
-    - "--cq-level=25"
+    - "--cq-level=18"
     - "--cpu-used=6"
     - "--enable-chroma-deltaq=1"
     - "--qm-min=0"
