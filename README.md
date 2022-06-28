@@ -1,5 +1,8 @@
 # Batch AVIF
 
+I'm no longer maintaining this project since this's just for introducing myself to Golang. I'm maintaining a similar one written in Python [here](https://github.com/delnegend/scripts)
+
+---
 ## ✨ Features
 - [x] ⚙️ Configurable presets
 - [x] 🔧 Keep/remove original file(s)

@@ -57,18 +57,7 @@ func ProcessPreset(
 		if strings.Contains(p, "{{ threads }}") {
 			enc[i] = strings.Replace(p, "{{ threads }}", fmt.Sprintf("%d", MaxCPU()), -1)
 		}
-		if strings.Contains(p, "{{ width }}") || strings.Contains(p, "{{ height }}") {
-			width, height, err := Dimension(log, file)
-			if err != nil {
-				return nil, nil, nil, nil, err
-			}
-			if strings.Contains(p, "{{ width }}") {
-				enc[i] = strings.Replace(p, "{{ width }}", fmt.Sprintf("%d", width), -1)
-			}
-			if strings.Contains(p, "{{ height }}") {
-				enc[i] = strings.Replace(p, "{{ height }}", fmt.Sprintf("%d", height), -1)
-			}
-		}
+		// Moved {{ width }} and {{ height }} parsing to Convert.go for parsing dimension from y4m after extracted
 	}
 	for i, p := range fallback {
 		if strings.Contains(p, "{{ input }}") && (mode == "file") {
@@ -80,18 +69,6 @@ func ProcessPreset(
 			fallback[i] = strings.Replace(p, "{{ output }}", file+".ivf", -1)
 		} else if mode == "pipe" {
 			fallback[i] = strings.Replace(p, "{{ output }}", "-", -1)
-		}
-		if strings.Contains(p, "{{ width }}") || strings.Contains(p, "{{ height }}") {
-			width, height, err := Dimension(log, file)
-			if err != nil {
-				return nil, nil, nil, nil, err
-			}
-			if strings.Contains(p, "{{ width }}") {
-				enc[i] = strings.Replace(p, "{{ width }}", fmt.Sprintf("%d", width), -1)
-			}
-			if strings.Contains(p, "{{ height }}") {
-				enc[i] = strings.Replace(p, "{{ height }}", fmt.Sprintf("%d", height), -1)
-			}
 		}
 	}
 	for i, p := range repack {

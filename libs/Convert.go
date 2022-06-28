@@ -12,6 +12,25 @@ import (
 	"time"
 )
 
+// read note in ProcessPreset.go
+func parse_dimension(file string, preset []string) ([]string, error) {
+	for i, p := range preset {
+		if strings.Contains(p, "{{ width }}") || strings.Contains(p, "{{ height }}") {
+			width, height, err := Dimension(nil, file)
+			if err != nil {
+				return nil, err
+			}
+			if strings.Contains(p, "{{ width }}") {
+				preset[i] = strings.Replace(p, "{{ width }}", fmt.Sprintf("%d", width), -1)
+			}
+			if strings.Contains(p, "{{ height }}") {
+				preset[i] = strings.Replace(p, "{{ height }}", fmt.Sprintf("%d", height), -1)
+			}
+		}
+	}
+	return preset, nil
+}
+
 // run extract-encode-repack file by file, export log, print detailed progress
 func StandardConvert(
 	log *os.File,
@@ -27,6 +46,13 @@ func StandardConvert(
 		if ExecCommand(log, ext[0], ext[1:]...) != nil {
 			return fmt.Errorf("failed to extract")
 		}
+
+		var err error
+		enc, err = parse_dimension(file+".y4m", enc)
+		if err != nil {
+			return err
+		}
+
 		logDivider(log, "CONVERT TO IVF", enc[0], enc[1:])
 		fmt.Printf("Converting to avif using %s...\n", enc[0])
 		if ExecCommand(log, enc[0], enc[1:]...) != nil {
@@ -34,6 +60,13 @@ func StandardConvert(
 		}
 	}
 	if rerun {
+
+		var err error
+		enc, err = parse_dimension(file+".y4m", enc)
+		if err != nil {
+			return err
+		}
+
 		logDivider(log, "RETRY CONVERT TO IVF", enc[0], enc[1:])
 		fmt.Printf("Retryng with %s...\n", enc)
 		if ExecCommand(log, enc[0], enc[1:]...) != nil {
@@ -54,11 +87,21 @@ func spawnFileModeJob(log *os.File, file string, ext []string, enc []string, rep
 		if ExecCommand(nil, ext[0], ext[1:]...) != nil {
 			return fmt.Errorf("failed to extract")
 		}
+		var err error
+		enc, err = parse_dimension(file+".y4m", enc)
+		if err != nil {
+			return err
+		}
 		if ExecCommand(nil, enc[0], enc[1:]...) != nil {
 			return fmt.Errorf("failed to convert")
 		}
 	}
 	if rerun {
+		var err error
+		enc, err = parse_dimension(file+".y4m", enc)
+		if err != nil {
+			return err
+		}
 		if ExecCommand(nil, enc[0], enc[1:]...) != nil {
 			return fmt.Errorf("failed to convert")
 		}
@@ -70,8 +113,15 @@ func spawnFileModeJob(log *os.File, file string, ext []string, enc []string, rep
 }
 
 // like spawnFileModeJob, but piping commands directly without extracting middle files
-func spawnPipeModeJob(ext []string, enc []string, repack []string) error {
+func spawnPipeModeJob(file string, ext []string, enc []string, repack []string) error {
 	var b bytes.Buffer
+
+	var err_dim error
+	enc, err_dim = parse_dimension(file, enc)
+	if err_dim != nil {
+		return err_dim
+	}
+
 	err := pipe.Command(&b,
 		exec.Command(ext[0], ext[1:]...),
 		exec.Command(enc[0], enc[1:]...),
@@ -128,7 +178,7 @@ func Convert(
 		if mode == "file" {
 			errMain = spawnFileModeJob(log, file, ext, enc, repack, false)
 		} else if mode == "pipe" {
-			errMain = spawnPipeModeJob(ext, enc, repack)
+			errMain = spawnPipeModeJob(file, ext, enc, repack)
 		}
 		os.Remove(file + ".ivf") // remove ivf created by failed encoder, keep the extracted y4m for fallback
 
@@ -145,7 +195,7 @@ func Convert(
 				errFallback = spawnFileModeJob(log, file, ext, fallback, repack, true)
 			}
 			if mode == "pipe" {
-				errFallback = spawnPipeModeJob(ext, fallback, repack)
+				errFallback = spawnPipeModeJob(file, ext, fallback, repack)
 			}
 			os.Remove(file + ".y4m")
 			os.Remove(file + ".ivf")

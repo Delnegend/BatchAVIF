@@ -210,6 +210,9 @@ func main() {
 	// endregion
 
 	// EXIT
+	if cf.Config.ExitWithouConfirm {
+		os.Exit(0)
+	}
 	fmt.Printf("Press Enter to exit...")
 	var exit string
 	fmt.Scanln(&exit)

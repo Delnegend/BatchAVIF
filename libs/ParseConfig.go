@@ -35,6 +35,7 @@ type Config struct {
 		Overwrite             bool   `yaml:"overwrite"`
 		Recursive             bool   `yaml:"recursive"`
 		ExportLog             bool   `yaml:"export_log"`
+		ExitWithouConfirm     bool   `yaml:"exit_without_confirm"`
 	}
 }
 

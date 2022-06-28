@@ -143,3 +143,4 @@ config:
   recursive: true # Also converts files in subdirectories
   overwrite: false # Overwrite converted files if they already exist
   export_log: false
+  exit_without_confirm: false
